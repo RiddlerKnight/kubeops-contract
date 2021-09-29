@@ -135,20 +135,52 @@
      - Secure by deployment -> Secret เราจะเก็บแยกไม่อยู่รวมกับ Code และเรียกใช้จาก role ที่กำหนดไว้เท่าที่จำเป็นเท่านั้น
 
    - infrastructure
+     - Isolate network from internet ใช้ NAT Gateway ถ้าจะ Access Internet
+     - Client ที่ต้องการ Access to resouce จะต้องผ่าน WAF เพื่อป้องกัน DDos และมี LB(อันนี้ต้องดู ความจำเป็น)
+     - ทำ Flowlog และใช้เครื่องมือที่สามารถ Scan malicious activity และ alert ได้
+     - TLS ทุกการส่งข้อมูล ป้องกัน man in the middle
    - data
+     - ไม่ควรเปิดเป็น public เด็ดขาด
+     - ให้สิทธิ์ เฉพาะ ที่จะใช้งานข้อมูลเท่านั้น
+     - Encryption สำคัญมาก
+     - มี Schedule Backup ข้อมูลสำคัญตลอด
 
 3. Base on your experience, how do you reduce your service downtime as much as possible during
 
    - software upgrade
+     - ทำ Rolling, Canary, Green-blue deployment เลือกใช้อันไหนขึ้นอยู่กับ ความสามารถของ Dev, DevOps และ Budget T-T
+     - App ต้องเป็น Stateless
+     - Version Control ต้องวางแผนให้ดีและเป็นระบบ
    - database migration
+     - Version Control ได้
+     - ถ้าเป็นการย้าย จาก on-prem ไป cloud ก็จำเป็นที่จะต้องใช้ Tool ที่สามารถ ทยอย migrate ไปยังที่ใหม่ได้ โดยไม่เกิด Downtime เช่น AWS Database Migration Service
    - incident
+     - ต้องมีระบบ Alert เมื่อมีความผิดปกติเกิดขึ้น ใช้ Cloudwatch, prometeus, etc
+     - Backup DB สม่ำเสมอ
+     - ทำ DR plan ไว้ก่อน เช่น ทำ Multi AZ
 
 4. Configuration management
 
    - a. Which Among Puppet, chef, Ansible, or another is the best Configuration management tool?
+
+     ตอบไม่ได้จริงๆ ว่าอันไหนดีสุด ผมจะมองว่า Tool ไหนเหมาะสมกับ Team นั้นๆ บางอย่างมี Learning curve สูง เอาเป็นว่า ผมว่าการใช้ Code ในการ Config นั้นเป็นอะไรที่ดีมากเพราะ version control ได้ดี ผมเคยได้แตะ Terraform มาบ้างมีบางอย่างที่ชอบและไม่ชอบอยู่ (ผมอาจจะยังรู้ไม่ลึกพอ)
+
    - b. Why?
+
+     Infrastructure as code เป็นอะไรที่จำเป็นเพราะ การใช้ portal หรือ cli ในการ Config นั้นเป็นอะไรที่มีโอกาสพลาดได้สูง แต่ Code เยอะไปก็ painful เหมือนกัน T-T
+
    - c. Do you still need to use it if you already have docker-swarm or Kubernetes?
+
+     Kubernetes หรือ swarm ยังมีความยากลำบากในบางส่วน เพราะ มีการใช้ Config ที่เยอะมาก ๆ และยังคง rely on OS ซึ่ง Kubernetes ยังไม่สามารถ interact กับ Hardware ได้โดยตรง และในบางกรณี Kube อาจจะยังไม่ตอบโจทร์กับ Software เก่าๆ หรือ ระบบที่เป็น Stateful
 
 5. How do you design your Kubernetes cluster? what DNS, CNI, ingression is being used? Why?
 
+   - `CoreDNS` เป็น 1 ใน Component หลัก บน kube ที่มีหน้าที่ Solve Service name, namespace เป็น ClusterIP
+   - `CNI` เป็น 1 ใน Component หลัก บน kube เช่นกัน ที่จะจัดการเรื่อง Network interface ระหว่าง Container ที่อยู่ระหว่าง Node
+   - `Ingress` อันนี้เป็น Plugin ที่จำเป็นในการ Proxy trafic จากภายนอก Kube เข้ามายัง Service ต่าง ๆ เป็นเหมือน L7 Load Balancer จำเป็นมากสำหรับ microservice architecture
+
 6. How do you measure service quality to give the best experience to your customer? (SLO, SLA)
+
+   Service Level Objective(SLO) มันคือเป้าหมายของ SLI ของระบบ (ผมจะไม่พูดตรง SLI แล้วกัน เอาเป็นว่ามันคือ Indicator) ตัวอย่างเช่น ต้องการให้ระบบ มี Response Time ไม่เกินตามเป้าหมายที่กำหนดเท่าไหร่ หรือ ระบบควรจะ Downtime ไม่เกินเท่าไหร่เพื่อที่จะวัดว่าเราควรไปปรับปรุงระบบเก่าให้มันดีขึ้น หรือจะพัฒนา Feature ใหม่ดี
+
+   Service Level Agreements(SLA) เป็นข้อตกลงระหว่าง ผู้รับผิดชอบระบบนั้นกับลูกค้า โดยสัญญาว่า SLO ต้องอยู่ไม่ต่ำกว่า 99.95% ถ้าต่ำกว่านั้น อาจจะมีค่าปรับตามมา
