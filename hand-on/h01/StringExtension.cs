@@ -1,4 +1,3 @@
-
 namespace h01;
 public static class StringExtension
 {
