@@ -6,8 +6,8 @@ static bool IsPalindrome(string word)
     for (int i = 0; i < word.Length / 2; i++) 
     {
         int e = i + 1;
-        var check1 = word[i];
-        var check2 = word[i == 0 ? ^1 : ^e];
+        // var check1 = word[i];
+        // var check2 = word[i == 0 ? ^1 : ^e];
         if (word[i] != word[i == 0 ? ^1 : ^e]) 
         {
             result = false;
